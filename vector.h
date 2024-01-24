@@ -1,5 +1,5 @@
-typedef struct Vector{
-	size_t index;
-	size_t cap;
+typedef struct Vec{
+	int index;
+	int cap;
 	char **arr;
-}Vector;
+} Vec;

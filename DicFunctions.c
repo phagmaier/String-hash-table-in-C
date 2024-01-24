@@ -1,136 +1,107 @@
-
-void add_new_no_coll(DicNode *dic, char *word, int *arr, size_t index){
-		dic[index].val = 1;
-		char *new_word = (char*) malloc(sizeof(word) * sizeof(char));
-		strcpy(new_word, word);
-		dic[index].has_children = 0;
-		dic[index].child = NULL;
-		dic[index].key = new_word;
-		arr[index] = 1;
+void free_node_contents(DicNode *node){
+	free(node->key);
+	node->val=0;
+	node->key = NULL;
+	node->has_child = 0;
+	node->child = NULL;
 }
 
-void add_new_coll(DicNode *node, char *word){
-	node->has_children =1;
+
+void free_children(DicNode *node){
+	DicNode *temp = NULL;
+	while (node->has_child){
+		temp = node->child;
+		free_node_contents(node);
+		free(node);
+		node = temp;
+	}
+	free_node_contents(node);
+	free(node);
+}
+
+void free_dic(DicNode *dic, int *arr, int size){
+	for (int i=0; i<size; ++i){
+		if (arr[i]){
+			DicNode *node = &dic[i];
+			if (node->has_child){
+				free_children(node->child);
+			}
+			free_node_contents(node);
+		}
+	}
+}
+
+size_t get_hash(char *word, int size){
+	size_t hash = 5381;
+	int i= 0;
+	while (word[i] != '\0'){
+		hash = ((hash << 5) + hash) + word[i];
+		++i;
+	}
+	return hash%size;
+}
+
+
+void add_no_coll(DicNode *node, char *str){
+	char *new_word =(char*) malloc(sizeof(char) * (strlen(str) +1));
+	memcpy(new_word, str, sizeof(char) * (strlen(str) +1));
+	node->key = new_word;
+	node->val = 1;
+	node->has_child = 0;
+	node->child = NULL;
+}
+
+void add_collision(DicNode *node, char *str){
 	DicNode *new_node = (DicNode*) malloc(sizeof(DicNode));
-	char *new_word = (char*) malloc(sizeof(word) * sizeof(char));
-	strcpy(new_word, word);
-	new_node->has_children = 0;
+	char *new_word =(char*) malloc(sizeof(char) * (strlen(str) +1));
+	memcpy(new_word, str, sizeof(char) * (strlen(str) +1));
 	new_node->key = new_word;
 	new_node->val = 1;
-	new_node->child = NULL;
+	new_node->has_child = 0;
+	node->has_child = 1;
 	node->child = new_node;
 }
 
-void add_string(DicNode *dic, char *word, int *arr, size_t index){
-	DicNode *node = &dic[index];
-	if (!arr[index]){
-		add_new_no_coll(dic, word, arr, index);
-	}
 
-	else if (!strcmp(word, node->key)){
-		node->val++;
+void add_to_dic(DicNode *dic, char *str, int *arr, size_t hash){
+	DicNode *node = &dic[hash];
+	if (!arr[hash]){
+		add_no_coll(node, str);
+		arr[hash] = 1;
 	}
-	else if (node->has_children){
-		node = node->child;
-		while (strcmp(node->key, word) && node->has_children){
+	else if(strcmp(node->key, str)){
+		while (strcmp(node->key, str) && node->has_child){
 			node = node->child;
 		}
-		//had children but we found the match there was a collision
-		if (!strcmp(node->key, word)){
+		if (!strcmp(node->key, str)){
 			node->val++;
+			//free(str);
 		}
-		//there was a collision but there was no match
 		else{
-			add_new_coll(node, word);
-		}
-
-	}
-	//didn't have children and there was no match
-	else{
-		add_new_coll(node, word);	
-	}
-	
-}
-
-//jsut returns the value for that particular string will need to run a hash function
-//returns 0 if doesn't exist
-size_t  get_value(char *word, DicNode **dic, int *arr, size_t hash){
-	DicNode *node =  dic[hash];
-	while (node->has_children){
-		if (!strcmp(node->key,word)){
-		return node->val;
-	}
-	}
-	if (!strcmp(node->key, word)){
-		return node->val;
-	}
-	return 0;
-}
-
-void free_children(DicNode *node){
-	DicNode *parent = node;
-	while (node->has_children){
-		node = node->child;
-		free(parent->key);
-		free(parent);
-		parent->val = 0;
-		parent->child = NULL;
-		parent->has_children = 0;
-		parent->key = NULL;
-	}
-	if (node){
-		free(node->key);
-		node->val = 0;
-		node->child = NULL;
-		node->has_children = 0;
-		node->key = NULL;
-		free(node);
-	}
-}
-
-void free_dic_vals(DicNode *dic, int *arr, size_t size){
-	for (int i=0; i<size; ++i){
-		if (arr[i]){
-			DicNode *node = &dic[i];
-			if (node->has_children){
-				free_children(node->child);
-
-			}
-			arr[i] = 0;
-			free(node->key);
-			node->val=0;
-			node->key=NULL;
-			node->has_children=0;
-			node->child = NULL;
+			add_collision(node, str);
 		}
 	}
 }
 
-size_t get_hash(char *word, size_t size){
-	unsigned long hash = 5381;
-	int c;
-	int i=0;
-	while (word[i]){
-		hash = ((hash << 5) + hash) + (int)word[i];
-		i++;
+
+void print_children(DicNode *node){
+	DicNode *temp = node;
+	while (node->has_child){
+		temp = node->child;
+		printf("%s:%d\n", node->key, node->val);
+		node = temp;
 	}
-	return hash % size;
-}
-
-void print_node(DicNode *dic){
-	printf("%s:%zu\n", dic->key, dic->val);
+	printf("%s:%d\n", node->key, node->val);
 
 }
-
-void print_dic(DicNode *dic, int *arr, size_t size){
-	for (int i=0; i<size; ++i){
+void print_dic(DicNode *dic, int *arr, int size){
+	for (int i=0; i< size; ++i){
 		if (arr[i]){
 			DicNode *node = &dic[i];
-			if(node->has_children){
-				print_node(node);
-				node = node->child;
-			}
-			print_node(node);
+			printf("%s:%d\n", node->key, node->val);
+			if (node->has_child){
+				print_children(node->child);
+		}
 		}
 	}
 }

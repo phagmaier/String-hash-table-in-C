@@ -1,6 +1,6 @@
-typedef struct DicNode{ 
+typedef struct DicNode{
 	char *key;
-	size_t val;
-	int has_children;
+	int val;
+	int has_child;
 	struct DicNode *child;
 }DicNode;
