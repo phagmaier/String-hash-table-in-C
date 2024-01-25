@@ -14,6 +14,8 @@ int inUse[SIZE];
 
 int main(){
 	FILE *file = fopen("mobydick.txt", "rb");
+    //FILE *file = fopen("aa.txt", "rb");
+
 
 	if (!file){
 		perror("Error opening the fil\n");
@@ -31,9 +33,13 @@ int main(){
 
 	fclose(file);
 	DicNode dic[SIZE];
-	parse_file_add_to_dic(dic, contents, inUse);
+	parse_file_add_to_dic(dic, contents, inUse, SIZE);
 	free(contents);
 	print_dic(dic, inUse, SIZE);
+
+	//int val = get_element_val(dic, inUse,"name", SIZE);
+	//printf("%d\n", val);
+
 	free_dic(dic, inUse, SIZE);
 
 	return 0;

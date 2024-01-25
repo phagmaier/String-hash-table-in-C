@@ -38,6 +38,7 @@ size_t get_hash(char *word, int size){
 		hash = ((hash << 5) + hash) + word[i];
 		++i;
 	}
+	//printf("%zu\n", hash%size);
 	return hash%size;
 }
 
@@ -83,21 +84,21 @@ void add_to_dic(DicNode *dic, char *str, int *arr, size_t hash){
 	}
 }
 
-void add_string_to_dic(DicNode *dic, char *file, int *arr, size_t start, int size){
+void add_string_to_dic(DicNode *dic, char *file, int *arr, size_t start, int size, int arr_size){
 	char *new_word = (char*) malloc(sizeof(char) *size);
 	memcpy(new_word, file+start, size-1);
-	add_to_dic(dic,new_word, arr, get_hash(new_word, size));
+	new_word[size-1] = '\0';
+	add_to_dic(dic,new_word, arr, get_hash(new_word, arr_size));
 }
 
 
 void print_children(DicNode *node){
-	DicNode *temp = node;
+	//DicNode *temp = node;
+	printf("%s:%d\n", node->key, node->val);	
 	while (node->has_child){
-		temp = node->child;
+		node = node->child;
 		printf("%s:%d\n", node->key, node->val);
-		node = temp;
 	}
-	printf("%s:%d\n", node->key, node->val);
 
 }
 void print_dic(DicNode *dic, int *arr, int size){
@@ -111,3 +112,44 @@ void print_dic(DicNode *dic, int *arr, int size){
 		}
 	}
 }
+
+//Would probably be more convenient if the dic Node came with it's own
+//array and was initiliazed to zero it would also make things easier
+//so a dicNode would be the node and a Dic would actually just be a list 
+//That was iniitialied to 0 (probably dynamically)
+
+int get_element_val(DicNode *dic, int *arr,char *str, int size){
+	size_t i = get_hash(str,size);
+	//printf("Looking up:%s which should be at: %zu\n", str, i);
+
+	if (arr[i]){
+		//printf("are we even here?\n");
+		DicNode *node = &dic[i];
+		while (strcmp(node->key, str) && node->has_child){
+			node = node->child;
+		}
+		if (!strcmp(node->key,str)){
+			return node->val;
+		}
+	}
+	return -1;
+}
+
+DicNode *get_node(DicNode *dic, int *arr,char *str, int size){
+	size_t i = get_hash(str,size);
+	//printf("Looking up:%s which should be at: %zu\n", str, i);
+
+	if (arr[i]){
+		//printf("are we even here?\n");
+		DicNode *node = &dic[i];
+		while (strcmp(node->key, str) && node->has_child){
+			node = node->child;
+		}
+		if (!strcmp(node->key,str)){
+			return node;
+		}
+	}
+	return NULL;
+}
+
+
