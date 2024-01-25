@@ -38,7 +38,7 @@ void parser_file_add_to_vec(Vec *vec, char *file){
 			}
 }
 
-void parse_file_add_to_dic(DicNode *dic, char*file, int *arr, int arr_size){
+void parse_file_add_to_dic(Dic *dic, char*file){
 	size_t i = move_past_whitespace(file, 0);
 	int offset;
 	int size;
@@ -46,9 +46,14 @@ void parse_file_add_to_dic(DicNode *dic, char*file, int *arr, int arr_size){
 	while (file[i] != '\0'){
 		if (file[i] == ' ' || file[i] == '\n'){
 			offset = remove_puncuation(file, i-1);
+			
+			if (!isalnum(file[start])){
+				start++;
+			}
+			
 			size = i - (start + offset);
 			if (size > 0){
-				add_string_to_dic(dic, file, arr, start, size+1,arr_size);
+				add_string_to_dic(dic, file, start, size+1);
 			}
 			i = move_past_whitespace(file, i);
 			size = 0;
@@ -59,7 +64,7 @@ void parse_file_add_to_dic(DicNode *dic, char*file, int *arr, int arr_size){
 	offset = remove_puncuation(file, i-1);
 			size = i - (start + offset);
 			if (size > 0){
-				add_string_to_dic(dic, file, arr, start, size+1,arr_size);
+				add_string_to_dic(dic, file, start, size+1);
 			}
 
 }

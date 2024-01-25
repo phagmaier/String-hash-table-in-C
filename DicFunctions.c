@@ -1,3 +1,11 @@
+void initialize_Dic(Dic *dic, size_t size){
+	dic->size = size;
+	dic->arr = malloc(sizeof(DicNode) * size);
+	dic->inUse = malloc(sizeof(int) * size);
+	memset(dic->inUse, 0, size * sizeof(int));
+}
+
+
 void free_node_contents(DicNode *node){
 	free(node->key);
 	node->val=0;
@@ -19,16 +27,18 @@ void free_children(DicNode *node){
 	free(node);
 }
 
-void free_dic(DicNode *dic, int *arr, int size){
-	for (int i=0; i<size; ++i){
-		if (arr[i]){
-			DicNode *node = &dic[i];
+void free_dic(Dic *dic){
+	for (int i=0; i<dic->size; ++i){
+		if (dic->inUse[i]){
+			DicNode *node = &dic->arr[i];
 			if (node->has_child){
 				free_children(node->child);
 			}
 			free_node_contents(node);
 		}
 	}
+	free(dic->arr);
+	free(dic->inUse);
 }
 
 size_t get_hash(char *word, int size){
@@ -64,11 +74,11 @@ void add_collision(DicNode *node, char *str){
 }
 
 
-void add_to_dic(DicNode *dic, char *str, int *arr, size_t hash){
-	DicNode *node = &dic[hash];
-	if (!arr[hash]){
+void add_to_dic(Dic *dic, char *str, size_t hash){
+	DicNode *node = &dic->arr[hash];
+	if (!dic->inUse[hash]){
 		add_no_coll(node, str);
-		arr[hash] = 1;
+		dic->inUse[hash] = 1;
 	}
 	else if(strcmp(node->key, str)){
 		while (strcmp(node->key, str) && node->has_child){
@@ -84,11 +94,11 @@ void add_to_dic(DicNode *dic, char *str, int *arr, size_t hash){
 	}
 }
 
-void add_string_to_dic(DicNode *dic, char *file, int *arr, size_t start, int size, int arr_size){
+void add_string_to_dic(Dic *dic, char *file, size_t start, int size){
 	char *new_word = (char*) malloc(sizeof(char) *size);
 	memcpy(new_word, file+start, size-1);
 	new_word[size-1] = '\0';
-	add_to_dic(dic,new_word, arr, get_hash(new_word, arr_size));
+	add_to_dic(dic,new_word, get_hash(new_word, dic->size));
 }
 
 
@@ -101,10 +111,10 @@ void print_children(DicNode *node){
 	}
 
 }
-void print_dic(DicNode *dic, int *arr, int size){
-	for (int i=0; i< size; ++i){
-		if (arr[i]){
-			DicNode *node = &dic[i];
+void print_dic(Dic *dic){
+	for (int i=0; i< dic->size; ++i){
+		if (dic->inUse[i]){
+			DicNode *node = &dic->arr[i];
 			printf("%s:%d\n", node->key, node->val);
 			if (node->has_child){
 				print_children(node->child);
@@ -118,13 +128,13 @@ void print_dic(DicNode *dic, int *arr, int size){
 //so a dicNode would be the node and a Dic would actually just be a list 
 //That was iniitialied to 0 (probably dynamically)
 
-int get_element_val(DicNode *dic, int *arr,char *str, int size){
-	size_t i = get_hash(str,size);
+int get_element_val(Dic *dic, char *str){
+	size_t i = get_hash(str,dic->size);
 	//printf("Looking up:%s which should be at: %zu\n", str, i);
 
-	if (arr[i]){
+	if (dic->inUse[i]){
 		//printf("are we even here?\n");
-		DicNode *node = &dic[i];
+		DicNode *node = &dic->arr[i];
 		while (strcmp(node->key, str) && node->has_child){
 			node = node->child;
 		}
@@ -135,13 +145,13 @@ int get_element_val(DicNode *dic, int *arr,char *str, int size){
 	return -1;
 }
 
-DicNode *get_node(DicNode *dic, int *arr,char *str, int size){
-	size_t i = get_hash(str,size);
+DicNode *get_node(Dic *dic, char *str){
+	size_t i = get_hash(str,dic->size);
 	//printf("Looking up:%s which should be at: %zu\n", str, i);
 
-	if (arr[i]){
+	if (dic->inUse[i]){
 		//printf("are we even here?\n");
-		DicNode *node = &dic[i];
+		DicNode *node = &dic->arr[i];
 		while (strcmp(node->key, str) && node->has_child){
 			node = node->child;
 		}
