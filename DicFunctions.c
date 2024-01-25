@@ -75,12 +75,18 @@ void add_to_dic(DicNode *dic, char *str, int *arr, size_t hash){
 		}
 		if (!strcmp(node->key, str)){
 			node->val++;
-			//free(str);
+			free(str);
 		}
 		else{
 			add_collision(node, str);
 		}
 	}
+}
+
+void add_string_to_dic(DicNode *dic, char *file, int *arr, size_t start, int size){
+	char *new_word = (char*) malloc(sizeof(char) *size);
+	memcpy(new_word, file+start, size-1);
+	add_to_dic(dic,new_word, arr, get_hash(new_word, size));
 }
 
 

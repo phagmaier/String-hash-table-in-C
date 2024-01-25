@@ -30,19 +30,11 @@ int main(){
 	fread(contents, 1, size, file);
 
 	fclose(file);
-	//printf("%s\n", contents);
-	Vec vec = {.index=0, .cap = SIZE, .arr = (char**) malloc(sizeof(char*) * size)};
-	parser(&vec, contents);
-	free(contents);
 	DicNode dic[SIZE];
-	for (int i=0; i<vec.index; ++i){
-		size_t hash = get_hash(vec.arr[i], SIZE);
-		//size_t hash = 69;
-		add_to_dic(dic, vec.arr[i], inUse, hash);
-	}
-
-	free_vec(&vec);
+	parse_file_add_to_dic(dic, contents, inUse);
+	free(contents);
 	print_dic(dic, inUse, SIZE);
 	free_dic(dic, inUse, SIZE);
+
 	return 0;
 }
